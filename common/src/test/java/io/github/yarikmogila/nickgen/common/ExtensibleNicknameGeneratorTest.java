@@ -22,6 +22,7 @@ class ExtensibleNicknameGeneratorTest {
         assertTrue(ids.contains(StandardNicknameGenerators.DICTIONARY));
         assertTrue(ids.contains(StandardNicknameGenerators.MINECRAFT_YOUTUBER));
         assertTrue(ids.contains(StandardNicknameGenerators.COUNTER_STRIKE_PRO));
+        assertTrue(ids.contains(StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC));
         assertTrue(ids.contains(StandardNicknameGenerators.DOTA_PRO));
     }
 
@@ -43,6 +44,13 @@ class ExtensibleNicknameGeneratorTest {
                 22L,
                 StandardNicknameGenerators.COUNTER_STRIKE_PRO
         ));
+        List<NicknameResult> counterStrikeClassic = generator.generate(new GenerationRequest(
+                10,
+                NicknameLocale.EN,
+                NicknameTemplate.ADJ_NOUN,
+                23L,
+                StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC
+        ));
         List<NicknameResult> dota = generator.generate(new GenerationRequest(
                 10,
                 NicknameLocale.RU,
@@ -53,6 +61,7 @@ class ExtensibleNicknameGeneratorTest {
 
         assertEquals(10, minecraft.size());
         assertEquals(10, counterStrike.size());
+        assertEquals(10, counterStrikeClassic.size());
         assertEquals(10, dota.size());
 
         minecraft.forEach(result -> {
@@ -62,6 +71,10 @@ class ExtensibleNicknameGeneratorTest {
         counterStrike.forEach(result -> {
             assertFalse(result.value().isBlank());
             assertEquals(StandardNicknameGenerators.COUNTER_STRIKE_PRO, result.generatorId());
+        });
+        counterStrikeClassic.forEach(result -> {
+            assertFalse(result.value().isBlank());
+            assertEquals(StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC, result.generatorId());
         });
         dota.forEach(result -> {
             assertFalse(result.value().isBlank());

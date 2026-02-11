@@ -24,6 +24,7 @@ All standard generators are configuration-driven through files in `common/src/ma
 - `dictionary`: meaningful dictionary-based EN/RU nicknames.
 - `minecraft-youtuber`: style inspired by names like `TommyInnit`, `Awesamedude`, `Dream`, `Technoblade`.
 - `cs-pro`: style inspired by names like `s1mple`, `d0nk`, `Dosia`, `sh1ro`, `ZywOo`, `apEX`.
+- `cs16-classic`: chaotic old-school CS 1.6 style with mixed alphabets, symbols, leet, and meme/game phrases.
 - `dota-pro`: style inspired by names like `RAMZESSS666`, `Серега Пират`, `VovaPain`.
 
 ## Configuration
@@ -34,6 +35,7 @@ Core configs:
 - `common/src/main/resources/generators/dictionary.properties` - dictionary generator behavior and dictionary file paths.
 - `common/src/main/resources/generators/minecraft-youtuber.properties` - Minecraft style behavior and word list paths.
 - `common/src/main/resources/generators/cs-pro.properties` - CS style behavior, leet mapping, case weights.
+- `common/src/main/resources/generators/cs16-classic.properties` - CS 1.6 style behavior and list paths.
 - `common/src/main/resources/generators/dota-pro.properties` - Dota style behavior and word list paths.
 
 Word libraries:
@@ -42,6 +44,7 @@ Word libraries:
 - `common/src/main/resources/dictionaries/ru/*.txt`
 - `common/src/main/resources/generators/lists/minecraft/*.txt`
 - `common/src/main/resources/generators/lists/cs/*.txt`
+- `common/src/main/resources/generators/lists/cs16/*.txt`
 - `common/src/main/resources/generators/lists/dota/*.txt`
 
 ## Run TUI
@@ -69,7 +72,7 @@ Generation with a user word:
 - `-c`, `--count` (default: `1`)
 - `-l`, `--locale` (`EN`, `RU`; default: `EN`)
 - `-t`, `--template` (`ADJ_NOUN`, `NOUN_VERB`, `ADJ_NOUN_NUMBER`; default: `ADJ_NOUN`)
-- `-g`, `--generator` (`dictionary`, `minecraft-youtuber`, `cs-pro`, `dota-pro`; default: `dictionary`)
+- `-g`, `--generator` (`dictionary`, `minecraft-youtuber`, `cs-pro`, `cs16-classic`, `dota-pro`; default: `dictionary`)
 - `-w`, `--word` optional user word that is included in each nickname
 - `--seed` optional `long`
 

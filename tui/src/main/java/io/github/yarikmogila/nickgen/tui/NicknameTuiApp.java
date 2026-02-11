@@ -44,7 +44,7 @@ public final class NicknameTuiApp implements Callable<Integer> {
     @Option(
             names = {"-g", "--generator"},
             defaultValue = StandardNicknameGenerators.DICTIONARY,
-            description = "Generator ID: dictionary, minecraft-youtuber, cs-pro, dota-pro"
+            description = "Generator ID: dictionary, minecraft-youtuber, cs-pro, cs16-classic, dota-pro"
     )
     String generatorId;
 
