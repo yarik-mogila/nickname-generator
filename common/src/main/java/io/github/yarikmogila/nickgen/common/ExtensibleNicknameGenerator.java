@@ -10,8 +10,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class ExtensibleNicknameGenerator implements NicknameGenerator {
 
-    private static final int DEFAULT_MIN_ATTEMPTS = 100;
-    private static final int DEFAULT_ATTEMPTS_PER_NICKNAME = 30;
+    private static final EngineConfig ENGINE_CONFIG = EngineConfig.loadDefault();
 
     private final NicknameGeneratorRegistry registry;
     private final Set<String> generatedNicknames;
@@ -19,11 +18,11 @@ public final class ExtensibleNicknameGenerator implements NicknameGenerator {
     private final int attemptsPerNickname;
 
     public ExtensibleNicknameGenerator() {
-        this(StandardNicknameGenerators.defaultRegistry(), DEFAULT_MIN_ATTEMPTS, DEFAULT_ATTEMPTS_PER_NICKNAME);
+        this(StandardNicknameGenerators.defaultRegistry(), ENGINE_CONFIG.minAttempts(), ENGINE_CONFIG.attemptsPerNickname());
     }
 
     public ExtensibleNicknameGenerator(NicknameGeneratorRegistry registry) {
-        this(registry, DEFAULT_MIN_ATTEMPTS, DEFAULT_ATTEMPTS_PER_NICKNAME);
+        this(registry, ENGINE_CONFIG.minAttempts(), ENGINE_CONFIG.attemptsPerNickname());
     }
 
     public ExtensibleNicknameGenerator(
@@ -112,5 +111,21 @@ public final class ExtensibleNicknameGenerator implements NicknameGenerator {
             return GenerationRequest.DEFAULT_GENERATOR_ID;
         }
         return generatorId.trim();
+    }
+
+    private record EngineConfig(int minAttempts, int attemptsPerNickname) {
+        private static final String RESOURCE_PATH = "/generators/engine.properties";
+
+        private static EngineConfig loadDefault() {
+            var properties = ConfigResourceSupport.loadProperties(RESOURCE_PATH);
+            int minAttempts = ConfigResourceSupport.requiredInt(properties, "minAttempts", 1, Integer.MAX_VALUE);
+            int attemptsPerNickname = ConfigResourceSupport.requiredInt(
+                    properties,
+                    "attemptsPerNickname",
+                    1,
+                    Integer.MAX_VALUE
+            );
+            return new EngineConfig(minAttempts, attemptsPerNickname);
+        }
     }
 }

@@ -1,6 +1,7 @@
 # Nickname Generator
 
 Multi-module Java 17 project for generating unique nicknames via pluggable generator profiles.
+All standard generators are configuration-driven through files in `common/src/main/resources`.
 
 ## Modules
 
@@ -24,6 +25,24 @@ Multi-module Java 17 project for generating unique nicknames via pluggable gener
 - `minecraft-youtuber`: style inspired by names like `TommyInnit`, `Awesamedude`, `Dream`, `Technoblade`.
 - `cs-pro`: style inspired by names like `s1mple`, `d0nk`, `Dosia`, `sh1ro`, `ZywOo`, `apEX`.
 - `dota-pro`: style inspired by names like `RAMZESSS666`, `Серега Пират`, `VovaPain`.
+
+## Configuration
+
+Core configs:
+
+- `common/src/main/resources/generators/engine.properties` - engine uniqueness/attempt limits.
+- `common/src/main/resources/generators/dictionary.properties` - dictionary generator behavior and dictionary file paths.
+- `common/src/main/resources/generators/minecraft-youtuber.properties` - Minecraft style behavior and word list paths.
+- `common/src/main/resources/generators/cs-pro.properties` - CS style behavior, leet mapping, case weights.
+- `common/src/main/resources/generators/dota-pro.properties` - Dota style behavior and word list paths.
+
+Word libraries:
+
+- `common/src/main/resources/dictionaries/en/*.txt`
+- `common/src/main/resources/dictionaries/ru/*.txt`
+- `common/src/main/resources/generators/lists/minecraft/*.txt`
+- `common/src/main/resources/generators/lists/cs/*.txt`
+- `common/src/main/resources/generators/lists/dota/*.txt`
 
 ## Run TUI
 

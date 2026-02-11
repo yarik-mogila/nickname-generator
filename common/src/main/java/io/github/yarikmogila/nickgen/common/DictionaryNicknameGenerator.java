@@ -14,18 +14,19 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public final class DictionaryNicknameGenerator implements NicknameGenerator, NicknameProfileGenerator {
 
-    private static final int DEFAULT_MIN_ATTEMPTS = 100;
-    private static final int DEFAULT_ATTEMPTS_PER_NICKNAME = 30;
-    private static final int MIN_NUMBER = 10;
-    private static final int MAX_NUMBER = 9999;
+    private static final DictionaryConfig DEFAULT_CONFIG = DictionaryConfig.loadDefault();
 
     private final EnumMap<NicknameLocale, LocaleWordBank> wordBanks;
     private final Set<String> generatedNicknames;
     private final int minAttempts;
     private final int attemptsPerNickname;
+    private final int minNumber;
+    private final int maxNumber;
+    private final String displayName;
+    private final String description;
 
     public DictionaryNicknameGenerator() {
-        this(DictionaryLoader.loadDefaultBanks(), DEFAULT_MIN_ATTEMPTS, DEFAULT_ATTEMPTS_PER_NICKNAME);
+        this(DictionaryLoader.loadDefaultBanks(), DEFAULT_CONFIG);
     }
 
     @Override
@@ -35,12 +36,12 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator, Nic
 
     @Override
     public String displayName() {
-        return "Dictionary (Meaningful Words)";
+        return displayName;
     }
 
     @Override
     public String description() {
-        return "Combines grouped adjectives/nouns/verbs from EN/RU dictionaries.";
+        return description;
     }
 
     @Override
@@ -53,17 +54,38 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator, Nic
             int minAttempts,
             int attemptsPerNickname
     ) {
-        if (minAttempts < 1) {
+        this(
+                wordBanks,
+                new DictionaryConfig(
+                        DEFAULT_CONFIG.displayName(),
+                        DEFAULT_CONFIG.description(),
+                        minAttempts,
+                        attemptsPerNickname,
+                        DEFAULT_CONFIG.minNumber(),
+                        DEFAULT_CONFIG.maxNumber()
+                )
+        );
+    }
+
+    private DictionaryNicknameGenerator(EnumMap<NicknameLocale, LocaleWordBank> wordBanks, DictionaryConfig config) {
+        if (config.minAttempts() < 1) {
             throw new IllegalArgumentException("minAttempts must be positive");
         }
-        if (attemptsPerNickname < 1) {
+        if (config.attemptsPerNickname() < 1) {
             throw new IllegalArgumentException("attemptsPerNickname must be positive");
+        }
+        if (config.minNumber() > config.maxNumber()) {
+            throw new IllegalArgumentException("numberMin must be <= numberMax");
         }
 
         this.wordBanks = copyBanks(wordBanks);
         this.generatedNicknames = new HashSet<>();
-        this.minAttempts = minAttempts;
-        this.attemptsPerNickname = attemptsPerNickname;
+        this.minAttempts = config.minAttempts();
+        this.attemptsPerNickname = config.attemptsPerNickname();
+        this.minNumber = config.minNumber();
+        this.maxNumber = config.maxNumber();
+        this.displayName = config.displayName();
+        this.description = config.description();
     }
 
     @Override
@@ -162,7 +184,7 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator, Nic
                 String group = localeWordBank.pickGroupForAdjNoun(random);
                 String adjective = localeWordBank.pickAdjective(group, random);
                 String noun = localeWordBank.pickNoun(group, random);
-                int number = MIN_NUMBER + random.nextInt(MAX_NUMBER - MIN_NUMBER + 1);
+                int number = minNumber + random.nextInt(maxNumber - minNumber + 1);
                 yield compose(adjective, noun) + number;
             }
         };
@@ -211,6 +233,33 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator, Nic
             throw new IllegalArgumentException("wordBanks must not be empty");
         }
         return copy;
+    }
+
+    private record DictionaryConfig(
+            String displayName,
+            String description,
+            int minAttempts,
+            int attemptsPerNickname,
+            int minNumber,
+            int maxNumber
+    ) {
+        private static final String RESOURCE_PATH = "/generators/dictionary.properties";
+
+        private static DictionaryConfig loadDefault() {
+            var properties = ConfigResourceSupport.loadProperties(RESOURCE_PATH);
+            String displayName = ConfigResourceSupport.requiredString(properties, "displayName");
+            String description = ConfigResourceSupport.requiredString(properties, "description");
+            int minAttempts = ConfigResourceSupport.requiredInt(properties, "minAttempts", 1, Integer.MAX_VALUE);
+            int attemptsPerNickname = ConfigResourceSupport.requiredInt(
+                    properties,
+                    "attemptsPerNickname",
+                    1,
+                    Integer.MAX_VALUE
+            );
+            int minNumber = ConfigResourceSupport.requiredInt(properties, "numberMin", 0, Integer.MAX_VALUE);
+            int maxNumber = ConfigResourceSupport.requiredInt(properties, "numberMax", minNumber, Integer.MAX_VALUE);
+            return new DictionaryConfig(displayName, description, minAttempts, attemptsPerNickname, minNumber, maxNumber);
+        }
     }
 
     static final class LocaleWordBank {

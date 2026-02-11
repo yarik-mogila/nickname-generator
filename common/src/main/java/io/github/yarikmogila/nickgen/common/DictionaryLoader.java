@@ -11,25 +11,37 @@ import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 final class DictionaryLoader {
+
+    private static final String DICTIONARY_CONFIG_PATH = "/generators/dictionary.properties";
 
     private DictionaryLoader() {
     }
 
     static EnumMap<NicknameLocale, DictionaryNicknameGenerator.LocaleWordBank> loadDefaultBanks() {
+        Properties properties = ConfigResourceSupport.loadProperties(DICTIONARY_CONFIG_PATH);
+
         EnumMap<NicknameLocale, DictionaryNicknameGenerator.LocaleWordBank> banks =
                 new EnumMap<>(NicknameLocale.class);
-        banks.put(NicknameLocale.EN, loadLocaleWordBank("en"));
-        banks.put(NicknameLocale.RU, loadLocaleWordBank("ru"));
+        banks.put(NicknameLocale.EN, loadLocaleWordBank(properties, "en"));
+        banks.put(NicknameLocale.RU, loadLocaleWordBank(properties, "ru"));
         return banks;
     }
 
-    private static DictionaryNicknameGenerator.LocaleWordBank loadLocaleWordBank(String localeCode) {
-        String basePath = "/dictionaries/" + localeCode + "/";
-        Map<String, List<String>> adjectives = readGroupedWords(basePath + "adjectives.txt");
-        Map<String, List<String>> nouns = readGroupedWords(basePath + "nouns.txt");
-        Map<String, List<String>> verbs = readGroupedWords(basePath + "verbs.txt");
+    private static DictionaryNicknameGenerator.LocaleWordBank loadLocaleWordBank(
+            Properties properties,
+            String localeCode
+    ) {
+        String adjectivesPath = ConfigResourceSupport.requiredString(properties, localeCode + ".adjectivesFile");
+        String nounsPath = ConfigResourceSupport.requiredString(properties, localeCode + ".nounsFile");
+        String verbsPath = ConfigResourceSupport.requiredString(properties, localeCode + ".verbsFile");
+
+        Map<String, List<String>> adjectives = readGroupedWords(adjectivesPath);
+        Map<String, List<String>> nouns = readGroupedWords(nounsPath);
+        Map<String, List<String>> verbs = readGroupedWords(verbsPath);
+
         return new DictionaryNicknameGenerator.LocaleWordBank(adjectives, nouns, verbs);
     }
 
