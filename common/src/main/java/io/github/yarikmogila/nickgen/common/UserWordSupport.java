@@ -6,6 +6,12 @@ import java.util.Random;
 
 final class UserWordSupport {
 
+    enum UserWordPosition {
+        SMART,
+        START,
+        END
+    }
+
     private UserWordSupport() {
     }
 
@@ -24,6 +30,15 @@ final class UserWordSupport {
     }
 
     static String applyUserWord(String candidate, String userWord, Random random) {
+        return applyUserWord(candidate, userWord, UserWordPosition.SMART, random);
+    }
+
+    static String applyUserWord(
+            String candidate,
+            String userWord,
+            UserWordPosition position,
+            Random random
+    ) {
         if (candidate == null || candidate.isBlank()) {
             return candidate;
         }
@@ -37,6 +52,7 @@ final class UserWordSupport {
             return candidate;
         }
 
+        UserWordPosition effectivePosition = position == null ? UserWordPosition.SMART : position;
         String[] parts = splitNumberSuffix(candidate);
         String base = parts[0];
         String numericSuffix = parts[1];
@@ -47,19 +63,67 @@ final class UserWordSupport {
 
         if (base.contains("_")) {
             String[] tokens = base.split("_", -1);
-            tokens[0] = userWord;
+            int index = resolveTokenIndex(effectivePosition, tokens.length, random);
+            tokens[index] = userWord;
             return String.join("_", tokens) + numericSuffix;
         }
 
         int secondTokenIndex = findSecondTokenStart(base);
         if (secondTokenIndex > 0) {
+            String first = base.substring(0, secondTokenIndex);
             String tail = base.substring(secondTokenIndex);
+            if (effectivePosition == UserWordPosition.SMART && random.nextBoolean()) {
+                effectivePosition = UserWordPosition.END;
+            }
+            if (effectivePosition == UserWordPosition.END) {
+                String separator = needsSeparator(first, userWord) ? "_" : "";
+                return first + separator + userWord + numericSuffix;
+            }
             String separator = needsSeparator(userWord, tail) ? "_" : "";
             return userWord + separator + tail + numericSuffix;
         }
 
+        if (effectivePosition == UserWordPosition.END || (effectivePosition == UserWordPosition.SMART && random.nextBoolean())) {
+            String separator = needsSeparator(base, userWord) ? "_" : "";
+            return base + separator + userWord + numericSuffix;
+        }
+
         String separator = needsSeparator(userWord, base) ? "_" : "";
         return userWord + separator + base + numericSuffix;
+    }
+
+    static UserWordPosition resolveUserWordPosition(Map<String, String> options) {
+        if (options == null) {
+            return UserWordPosition.SMART;
+        }
+
+        String raw = options.get(GenerationOptionKeys.USER_WORD_POSITION);
+        if (raw == null || raw.isBlank()) {
+            return UserWordPosition.SMART;
+        }
+
+        String normalized = raw.trim().toLowerCase(Locale.ROOT);
+        return switch (normalized) {
+            case "start", "prefix", "first" -> UserWordPosition.START;
+            case "end", "suffix", "last" -> UserWordPosition.END;
+            case "smart", "auto", "random" -> UserWordPosition.SMART;
+            default -> throw new InvalidGenerationRequestException(
+                    "Unsupported userWordPosition: " + raw + ". Allowed: start, end, smart"
+            );
+        };
+    }
+
+    private static int resolveTokenIndex(UserWordPosition position, int tokenCount, Random random) {
+        if (tokenCount < 2) {
+            return 0;
+        }
+        if (position == UserWordPosition.START) {
+            return 0;
+        }
+        if (position == UserWordPosition.END) {
+            return tokenCount - 1;
+        }
+        return random.nextBoolean() ? 0 : tokenCount - 1;
     }
 
     private static String normalizeWord(String rawWord) {

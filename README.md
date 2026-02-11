@@ -100,6 +100,7 @@ GUI includes:
 - `ExtensibleNicknameGenerator`: engine that resolves profile by `generatorId` and guarantees uniqueness.
 - `GenerationRequest`: request model including `generatorId` and optional `options` map.
 - `GenerationOptionKeys.USER_WORD`: built-in option key for forcing inclusion of a user-provided word.
+- `GenerationOptionKeys.USER_WORD_POSITION`: optional placement mode for user word (`start`, `end`, `smart`).
 
 ### Minimal custom generator example
 
@@ -130,7 +131,10 @@ List<NicknameResult> result = generator.generate(new GenerationRequest(
         NicknameTemplate.ADJ_NOUN,
         123L,
         "my-profile",
-        Map.of(GenerationOptionKeys.USER_WORD, "Dragon")
+        Map.of(
+                GenerationOptionKeys.USER_WORD, "Dragon",
+                GenerationOptionKeys.USER_WORD_POSITION, "smart"
+        )
 ));
 ```
 
