@@ -1,0 +1,10 @@
+nature|flows
+nature|wanders
+nature|blooms
+tech|codes
+tech|pulses
+animal|hunts
+animal|soars
+mystic|awakens
+mystic|whispers
+mystic|glows

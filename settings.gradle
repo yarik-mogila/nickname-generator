@@ -1,0 +1,3 @@
+rootProject.name = 'nickname-generator'
+
+include 'common', 'tui', 'gui'

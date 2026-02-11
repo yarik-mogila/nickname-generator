@@ -1,0 +1,10 @@
+nature|лес
+nature|река
+nature|ветер
+tech|код
+tech|сигнал
+animal|волк
+animal|сокол
+mystic|оракул
+mystic|руна
+mystic|феникс

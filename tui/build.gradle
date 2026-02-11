@@ -1,0 +1,12 @@
+plugins {
+    id 'application'
+}
+
+dependencies {
+    implementation project(':common')
+    implementation 'info.picocli:picocli:4.7.6'
+}
+
+application {
+    mainClass = 'io.github.yarikmogila.nickgen.tui.NicknameTuiApp'
+}

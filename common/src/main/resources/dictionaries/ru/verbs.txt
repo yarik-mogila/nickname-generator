@@ -1,0 +1,10 @@
+nature|течёт
+nature|шумит
+nature|растёт
+tech|пишет
+tech|пульсирует
+animal|охотится
+animal|летит
+mystic|пробуждается
+mystic|шепчет
+mystic|сияет

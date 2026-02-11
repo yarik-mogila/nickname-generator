@@ -1,0 +1,10 @@
+nature|тихий
+nature|бурный
+nature|зелёный
+tech|квантовый
+tech|неоновый
+animal|быстрый
+animal|хитрый
+mystic|тайный
+mystic|лунный
+mystic|древний

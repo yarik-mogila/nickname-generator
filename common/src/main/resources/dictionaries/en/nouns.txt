@@ -1,0 +1,10 @@
+nature|forest
+nature|river
+nature|breeze
+tech|circuit
+tech|matrix
+animal|falcon
+animal|wolf
+mystic|oracle
+mystic|phoenix
+mystic|rune

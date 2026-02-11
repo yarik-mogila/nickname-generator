@@ -1,0 +1,10 @@
+nature|silent
+nature|wild
+nature|green
+tech|quantum
+tech|neon
+animal|swift
+animal|fierce
+mystic|arcane
+mystic|shadow
+mystic|lunar
