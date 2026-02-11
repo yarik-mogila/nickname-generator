@@ -28,6 +28,7 @@ class DictionaryNicknameGeneratorTest {
         assertEquals(20, results.size());
         Set<String> unique = results.stream().map(NicknameResult::value).collect(Collectors.toSet());
         assertEquals(20, unique.size());
+        results.forEach(result -> assertEquals(StandardNicknameGenerators.DICTIONARY, result.generatorId()));
     }
 
     @Test

@@ -1,6 +1,6 @@
 package io.github.yarikmogila.nickgen.tui;
 
-import io.github.yarikmogila.nickgen.common.DictionaryNicknameGenerator;
+import io.github.yarikmogila.nickgen.common.ExtensibleNicknameGenerator;
 import io.github.yarikmogila.nickgen.common.GenerationRequest;
 import io.github.yarikmogila.nickgen.common.InvalidGenerationRequestException;
 import io.github.yarikmogila.nickgen.common.NicknameGenerator;
@@ -8,6 +8,7 @@ import io.github.yarikmogila.nickgen.common.NicknameLocale;
 import io.github.yarikmogila.nickgen.common.NicknameResult;
 import io.github.yarikmogila.nickgen.common.NicknameTemplate;
 import io.github.yarikmogila.nickgen.common.NotEnoughUniqueNicknamesException;
+import io.github.yarikmogila.nickgen.common.StandardNicknameGenerators;
 import java.util.List;
 import java.util.concurrent.Callable;
 import picocli.CommandLine;
@@ -35,13 +36,20 @@ public final class NicknameTuiApp implements Callable<Integer> {
     @Option(names = "--seed", description = "Optional random seed for deterministic generation")
     Long seed;
 
+    @Option(
+            names = {"-g", "--generator"},
+            defaultValue = StandardNicknameGenerators.DICTIONARY,
+            description = "Generator ID: dictionary, minecraft-youtuber, cs-pro, dota-pro"
+    )
+    String generatorId;
+
     @Spec
     private CommandSpec spec;
 
     private final NicknameGenerator generator;
 
     public NicknameTuiApp() {
-        this(new DictionaryNicknameGenerator());
+        this(new ExtensibleNicknameGenerator());
     }
 
     NicknameTuiApp(NicknameGenerator generator) {
@@ -51,7 +59,7 @@ public final class NicknameTuiApp implements Callable<Integer> {
     @Override
     public Integer call() {
         try {
-            GenerationRequest request = new GenerationRequest(count, locale, template, seed);
+            GenerationRequest request = new GenerationRequest(count, locale, template, seed, generatorId);
             List<NicknameResult> results = generator.generate(request);
             results.forEach(result -> spec.commandLine().getOut().println(result.value()));
             return 0;

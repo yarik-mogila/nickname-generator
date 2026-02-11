@@ -9,6 +9,7 @@ import io.github.yarikmogila.nickgen.common.NicknameGenerator;
 import io.github.yarikmogila.nickgen.common.NicknameLocale;
 import io.github.yarikmogila.nickgen.common.NicknameResult;
 import io.github.yarikmogila.nickgen.common.NicknameTemplate;
+import io.github.yarikmogila.nickgen.common.StandardNicknameGenerators;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.util.List;
@@ -30,6 +31,7 @@ class NicknameTuiAppTest {
                 "--count", "2",
                 "--locale", "RU",
                 "--template", "NOUN_VERB",
+                "--generator", "cs-pro",
                 "--seed", "42"
         );
 
@@ -37,6 +39,7 @@ class NicknameTuiAppTest {
         assertEquals(2, generator.lastRequest.count());
         assertEquals(NicknameLocale.RU, generator.lastRequest.locale());
         assertEquals(NicknameTemplate.NOUN_VERB, generator.lastRequest.template());
+        assertEquals(StandardNicknameGenerators.COUNTER_STRIKE_PRO, generator.lastRequest.generatorId());
         assertEquals(42L, generator.lastRequest.seed());
 
         String outputText = output.toString();
@@ -56,6 +59,20 @@ class NicknameTuiAppTest {
 
         assertEquals(2, exitCode);
         assertTrue(errorOutput.toString().contains("count must be >= 1"));
+    }
+
+    @Test
+    void shouldReturnErrorForUnknownGenerator() {
+        NicknameTuiApp app = new NicknameTuiApp();
+        CommandLine commandLine = new CommandLine(app);
+
+        ByteArrayOutputStream errorOutput = new ByteArrayOutputStream();
+        commandLine.setErr(new PrintWriter(errorOutput, true));
+
+        int exitCode = commandLine.execute("--generator", "unknown-generator");
+
+        assertEquals(2, exitCode);
+        assertTrue(errorOutput.toString().contains("Unknown generatorId"));
     }
 
     private static final class CapturingGenerator implements NicknameGenerator {

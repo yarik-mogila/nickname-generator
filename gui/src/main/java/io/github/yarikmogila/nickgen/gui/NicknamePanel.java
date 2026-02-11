@@ -3,6 +3,7 @@ package io.github.yarikmogila.nickgen.gui;
 import io.github.yarikmogila.nickgen.common.NicknameLocale;
 import io.github.yarikmogila.nickgen.common.NicknameResult;
 import io.github.yarikmogila.nickgen.common.NicknameTemplate;
+import io.github.yarikmogila.nickgen.common.NicknameGeneratorDescriptor;
 import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
@@ -26,6 +27,7 @@ final class NicknamePanel extends JPanel {
 
     private final JComboBox<NicknameLocale> localeComboBox;
     private final JComboBox<NicknameTemplate> templateComboBox;
+    private final JComboBox<NicknameGeneratorDescriptor> generatorComboBox;
     private final JSpinner countSpinner;
     private final JTextField seedTextField;
     private final DefaultListModel<String> nicknamesModel;
@@ -37,6 +39,7 @@ final class NicknamePanel extends JPanel {
 
         localeComboBox = new JComboBox<>(NicknameLocale.values());
         templateComboBox = new JComboBox<>(NicknameTemplate.values());
+        generatorComboBox = new JComboBox<>(facade.availableGenerators().toArray(NicknameGeneratorDescriptor[]::new));
         countSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
         seedTextField = new JTextField(12);
         nicknamesModel = new DefaultListModel<>();
@@ -57,6 +60,9 @@ final class NicknamePanel extends JPanel {
 
         panel.add(new JLabel("Template:"));
         panel.add(templateComboBox);
+
+        panel.add(new JLabel("Generator:"));
+        panel.add(generatorComboBox);
 
         panel.add(new JLabel("Count:"));
         panel.add(countSpinner);
@@ -86,8 +92,17 @@ final class NicknamePanel extends JPanel {
             int count = (Integer) countSpinner.getValue();
             NicknameLocale locale = (NicknameLocale) localeComboBox.getSelectedItem();
             NicknameTemplate template = (NicknameTemplate) templateComboBox.getSelectedItem();
+            NicknameGeneratorDescriptor descriptor =
+                    (NicknameGeneratorDescriptor) generatorComboBox.getSelectedItem();
+            String generatorId = descriptor == null ? null : descriptor.id();
 
-            List<NicknameResult> nicknames = facade.generate(count, locale, template, seedTextField.getText());
+            List<NicknameResult> nicknames = facade.generate(
+                    count,
+                    locale,
+                    template,
+                    generatorId,
+                    seedTextField.getText()
+            );
             nicknamesModel.clear();
             nicknames.forEach(result -> nicknamesModel.addElement(result.value()));
         } catch (RuntimeException exception) {

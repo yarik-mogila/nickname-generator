@@ -12,7 +12,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
 
-public final class DictionaryNicknameGenerator implements NicknameGenerator {
+public final class DictionaryNicknameGenerator implements NicknameGenerator, NicknameProfileGenerator {
 
     private static final int DEFAULT_MIN_ATTEMPTS = 100;
     private static final int DEFAULT_ATTEMPTS_PER_NICKNAME = 30;
@@ -26,6 +26,26 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator {
 
     public DictionaryNicknameGenerator() {
         this(DictionaryLoader.loadDefaultBanks(), DEFAULT_MIN_ATTEMPTS, DEFAULT_ATTEMPTS_PER_NICKNAME);
+    }
+
+    @Override
+    public String id() {
+        return StandardNicknameGenerators.DICTIONARY;
+    }
+
+    @Override
+    public String displayName() {
+        return "Dictionary (Meaningful Words)";
+    }
+
+    @Override
+    public String description() {
+        return "Combines grouped adjectives/nouns/verbs from EN/RU dictionaries.";
+    }
+
+    @Override
+    public List<NicknameGeneratorDescriptor> availableGenerators() {
+        return List.of(new NicknameGeneratorDescriptor(id(), displayName(), description()));
     }
 
     DictionaryNicknameGenerator(
@@ -73,11 +93,28 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator {
 
             String candidate = buildCandidate(localeWordBank, request.template(), random);
             if (generatedNicknames.add(candidate)) {
-                results.add(new NicknameResult(candidate, request.locale(), request.template()));
+                results.add(new NicknameResult(candidate, request.locale(), request.template(), id()));
             }
         }
 
         return List.copyOf(results);
+    }
+
+    @Override
+    public String generateCandidate(NicknameRequestContext context, Random random) {
+        if (context.locale() == null) {
+            throw new InvalidGenerationRequestException("locale must not be null");
+        }
+        if (context.template() == null) {
+            throw new InvalidGenerationRequestException("template must not be null");
+        }
+
+        LocaleWordBank localeWordBank = wordBanks.get(context.locale());
+        if (localeWordBank == null) {
+            throw new InvalidGenerationRequestException("No dictionary found for locale: " + context.locale());
+        }
+
+        return buildCandidate(localeWordBank, context.template(), random);
     }
 
     private int resolveMaxAttempts(int count) {
@@ -97,6 +134,13 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator {
         }
         if (request.template() == null) {
             throw new InvalidGenerationRequestException("template must not be null");
+        }
+        if (request.generatorId() != null
+                && !request.generatorId().isBlank()
+                && !id().equals(request.generatorId().trim())) {
+            throw new InvalidGenerationRequestException(
+                    "DictionaryNicknameGenerator only supports generatorId='" + id() + "'"
+            );
         }
     }
 
