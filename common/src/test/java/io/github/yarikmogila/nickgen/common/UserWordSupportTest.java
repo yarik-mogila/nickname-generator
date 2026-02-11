@@ -1,6 +1,8 @@
 package io.github.yarikmogila.nickgen.common;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Random;
 import org.junit.jupiter.api.Test;
@@ -63,5 +65,45 @@ class UserWordSupportTest {
                 java.util.Map.of(GenerationOptionKeys.USER_WORD_POSITION, "end")
         );
         assertEquals(UserWordSupport.UserWordPosition.END, position);
+    }
+
+    @Test
+    void shouldStyleWordToMatchReferenceWhenRequested() {
+        String actual = UserWordSupport.applyUserWord(
+                "D4K3R_Token",
+                "Антон",
+                UserWordSupport.UserWordPosition.START,
+                UserWordSupport.UserWordStyle.MATCH,
+                new Random(2)
+        );
+
+        assertTrue(actual.endsWith("_Token"));
+        String styled = actual.substring(0, actual.indexOf('_'));
+        assertFalse(styled.equals("Антон"));
+        assertTrue(styled.matches("[A-Za-z0-9]+"));
+        assertFalse(styled.matches(".*[\\u0400-\\u04FF].*"));
+    }
+
+    @Test
+    void shouldTransliterateLatinToCyrillicForCyrillicReferenceWhenMatchStyle() {
+        String actual = UserWordSupport.applyUserWord(
+                "Д4К3Р_Token",
+                "Anton",
+                UserWordSupport.UserWordPosition.START,
+                UserWordSupport.UserWordStyle.MATCH,
+                new Random(2)
+        );
+
+        assertTrue(actual.endsWith("_Token"));
+        String styled = actual.substring(0, actual.indexOf('_'));
+        assertTrue(styled.matches(".*[\\u0400-\\u04FF].*"));
+    }
+
+    @Test
+    void shouldParseUserWordStyleOption() {
+        UserWordSupport.UserWordStyle style = UserWordSupport.resolveUserWordStyle(
+                java.util.Map.of(GenerationOptionKeys.USER_WORD_STYLE, "match")
+        );
+        assertEquals(UserWordSupport.UserWordStyle.MATCH, style);
     }
 }

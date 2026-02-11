@@ -22,6 +22,7 @@ class ExtensibleNicknameGeneratorTest {
         assertTrue(ids.contains(StandardNicknameGenerators.DICTIONARY));
         assertTrue(ids.contains(StandardNicknameGenerators.MINECRAFT_YOUTUBER));
         assertTrue(ids.contains(StandardNicknameGenerators.COUNTER_STRIKE_PRO));
+        assertTrue(ids.contains(StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC));
         assertTrue(ids.contains(StandardNicknameGenerators.DOTA_PRO));
     }
 
@@ -43,6 +44,13 @@ class ExtensibleNicknameGeneratorTest {
                 22L,
                 StandardNicknameGenerators.COUNTER_STRIKE_PRO
         ));
+        List<NicknameResult> counterStrikeClassic = generator.generate(new GenerationRequest(
+                10,
+                NicknameLocale.EN,
+                NicknameTemplate.ADJ_NOUN,
+                23L,
+                StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC
+        ));
         List<NicknameResult> dota = generator.generate(new GenerationRequest(
                 10,
                 NicknameLocale.RU,
@@ -53,6 +61,7 @@ class ExtensibleNicknameGeneratorTest {
 
         assertEquals(10, minecraft.size());
         assertEquals(10, counterStrike.size());
+        assertEquals(10, counterStrikeClassic.size());
         assertEquals(10, dota.size());
 
         minecraft.forEach(result -> {
@@ -62,6 +71,10 @@ class ExtensibleNicknameGeneratorTest {
         counterStrike.forEach(result -> {
             assertFalse(result.value().isBlank());
             assertEquals(StandardNicknameGenerators.COUNTER_STRIKE_PRO, result.generatorId());
+        });
+        counterStrikeClassic.forEach(result -> {
+            assertFalse(result.value().isBlank());
+            assertEquals(StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC, result.generatorId());
         });
         dota.forEach(result -> {
             assertFalse(result.value().isBlank());
@@ -138,6 +151,37 @@ class ExtensibleNicknameGeneratorTest {
 
         assertEquals(12, results.size());
         results.forEach(result -> assertTrue(result.value().toLowerCase().contains("sniper")));
+    }
+
+    @Test
+    void shouldAvoidPathLikeMultiPartNicknamesInCs16Profile() {
+        ExtensibleNicknameGenerator generator = new ExtensibleNicknameGenerator();
+
+        List<NicknameResult> results = generator.generate(new GenerationRequest(
+                30,
+                NicknameLocale.RU,
+                NicknameTemplate.ADJ_NOUN,
+                42L,
+                StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC,
+                Map.of(GenerationOptionKeys.USER_WORD, "Антон")
+        ));
+
+        results.forEach(result -> {
+            assertTrue(countChar(result.value(), '/') <= 1);
+            assertTrue(countChar(result.value(), '|') <= 1);
+            assertFalse(result.value().contains("///"));
+            assertFalse(result.value().contains("|||"));
+        });
+    }
+
+    private int countChar(String text, char symbol) {
+        int count = 0;
+        for (int index = 0; index < text.length(); index++) {
+            if (text.charAt(index) == symbol) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private static final class FixedSuffixGenerator implements NicknameProfileGenerator {

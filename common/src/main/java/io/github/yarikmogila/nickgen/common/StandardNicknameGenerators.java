@@ -7,6 +7,7 @@ public final class StandardNicknameGenerators {
     public static final String DICTIONARY = "dictionary";
     public static final String MINECRAFT_YOUTUBER = "minecraft-youtuber";
     public static final String COUNTER_STRIKE_PRO = "cs-pro";
+    public static final String COUNTER_STRIKE_16_CLASSIC = "cs16-classic";
     public static final String DOTA_PRO = "dota-pro";
 
     private StandardNicknameGenerators() {
@@ -17,6 +18,7 @@ public final class StandardNicknameGenerators {
                 new DictionaryNicknameGenerator(),
                 new MinecraftYoutuberStyleGenerator(),
                 new CounterStrikeStyleGenerator(),
+                new CounterStrike16ClassicGenerator(),
                 new DotaStyleGenerator()
         );
     }
