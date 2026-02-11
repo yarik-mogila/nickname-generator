@@ -87,4 +87,15 @@ final class ConfigResourceSupport {
     static int requiredPercent(Properties properties, String key) {
         return requiredInt(properties, key, 0, 100);
     }
+
+    static boolean requiredBoolean(Properties properties, String key) {
+        String raw = requiredString(properties, key);
+        if ("true".equalsIgnoreCase(raw)) {
+            return true;
+        }
+        if ("false".equalsIgnoreCase(raw)) {
+            return false;
+        }
+        throw new IllegalStateException("Invalid boolean config key: " + key + "=" + raw);
+    }
 }

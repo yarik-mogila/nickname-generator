@@ -80,7 +80,7 @@ class UserWordSupportTest {
         assertTrue(actual.endsWith("_Token"));
         String styled = actual.substring(0, actual.indexOf('_'));
         assertFalse(styled.equals("Антон"));
-        assertTrue(styled.matches("^[A-Za-z0-9]+$"));
+        assertTrue(styled.matches(".*[\\u0400-\\u04FF].*"));
     }
 
     @Test

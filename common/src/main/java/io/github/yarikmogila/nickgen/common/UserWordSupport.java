@@ -8,18 +8,6 @@ import java.util.Random;
 
 final class UserWordSupport {
 
-    private static final Map<Character, Character> LATIN_TO_CYRILLIC_LOOKALIKE = Map.ofEntries(
-            Map.entry('a', 'а'), Map.entry('c', 'с'), Map.entry('e', 'е'), Map.entry('o', 'о'),
-            Map.entry('p', 'р'), Map.entry('x', 'х'), Map.entry('y', 'у'), Map.entry('k', 'к'),
-            Map.entry('m', 'м'), Map.entry('h', 'н'), Map.entry('b', 'в'), Map.entry('t', 'т')
-    );
-
-    private static final Map<Character, Character> CYRILLIC_TO_LATIN_LOOKALIKE = Map.ofEntries(
-            Map.entry('а', 'a'), Map.entry('с', 'c'), Map.entry('е', 'e'), Map.entry('о', 'o'),
-            Map.entry('р', 'p'), Map.entry('х', 'x'), Map.entry('у', 'y'), Map.entry('к', 'k'),
-            Map.entry('м', 'm'), Map.entry('н', 'h'), Map.entry('в', 'b'), Map.entry('т', 't')
-    );
-
     private static final Map<Character, Character> LEET_MAP = Map.ofEntries(
             Map.entry('a', '4'), Map.entry('e', '3'), Map.entry('i', '1'), Map.entry('o', '0'),
             Map.entry('s', '5'), Map.entry('t', '7'), Map.entry('b', '8'), Map.entry('z', '2'),
@@ -188,41 +176,8 @@ final class UserWordSupport {
             return userWord;
         }
 
-        String scriptAligned = alignScript(userWord, reference);
-        String leetAligned = alignLeet(scriptAligned, reference, random);
+        String leetAligned = alignLeet(userWord, reference, random);
         return alignCase(leetAligned, reference);
-    }
-
-    private static String alignScript(String word, String reference) {
-        int latinCount = 0;
-        int cyrillicCount = 0;
-
-        for (int index = 0; index < reference.length(); index++) {
-            char symbol = reference.charAt(index);
-            if (!Character.isLetter(symbol)) {
-                continue;
-            }
-            Character.UnicodeScript script = Character.UnicodeScript.of(symbol);
-            if (script == Character.UnicodeScript.LATIN) {
-                latinCount++;
-            } else if (script == Character.UnicodeScript.CYRILLIC) {
-                cyrillicCount++;
-            }
-        }
-
-        if (latinCount == cyrillicCount) {
-            return word;
-        }
-
-        Map<Character, Character> map = latinCount > cyrillicCount
-                ? CYRILLIC_TO_LATIN_LOOKALIKE
-                : LATIN_TO_CYRILLIC_LOOKALIKE;
-
-        StringBuilder builder = new StringBuilder(word.length());
-        for (int index = 0; index < word.length(); index++) {
-            builder.append(mapCharPreserveCase(word.charAt(index), map));
-        }
-        return builder.toString();
     }
 
     private static String alignLeet(String word, String reference, Random random) {
@@ -333,15 +288,6 @@ final class UserWordSupport {
         }
 
         return builder.toString();
-    }
-
-    private static char mapCharPreserveCase(char source, Map<Character, Character> map) {
-        char lower = Character.toLowerCase(source);
-        Character mapped = map.get(lower);
-        if (mapped == null) {
-            return source;
-        }
-        return Character.isUpperCase(source) ? Character.toUpperCase(mapped) : mapped;
     }
 
     private static int resolveTokenIndex(UserWordPosition position, int tokenCount, Random random) {

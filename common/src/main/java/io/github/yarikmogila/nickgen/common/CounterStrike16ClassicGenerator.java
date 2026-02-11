@@ -95,30 +95,36 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
 
     private String transformToken(String token, Random random) {
         String transformed = token;
-        transformed = maybeMixScripts(transformed, random);
+        if (!config.normalizeMixedTokenScript()) {
+            transformed = maybeMixScripts(transformed, random);
+        }
         transformed = maybeLeetReplace(transformed, random);
         transformed = applyCasePattern(transformed, random);
+        if (config.normalizeMixedTokenScript()) {
+            transformed = normalizeMixedScripts(transformed);
+        }
         return transformed;
     }
 
     private String maybeMixScripts(String token, Random random) {
+        if (containsBothScripts(token)) {
+            return token;
+        }
+
+        int replacements = 0;
         StringBuilder builder = new StringBuilder(token.length());
         for (int index = 0; index < token.length(); index++) {
             char symbol = token.charAt(index);
-            if (random.nextInt(100) >= config.scriptMixChancePercent()) {
+            if (random.nextInt(100) >= config.scriptMixChancePercent()
+                    || replacements >= config.scriptMixMaxReplacements()) {
                 builder.append(symbol);
                 continue;
             }
 
-            Character latinToCyr = config.latinToCyrMap().get(symbol);
-            if (latinToCyr != null) {
-                builder.append(latinToCyr);
-                continue;
-            }
-
-            Character cyrToLatin = config.cyrToLatinMap().get(symbol);
-            if (cyrToLatin != null) {
-                builder.append(cyrToLatin);
+            Character mapped = mapCrossScriptChar(symbol);
+            if (mapped != null) {
+                builder.append(mapped);
+                replacements++;
                 continue;
             }
 
@@ -229,6 +235,116 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
         return min + random.nextInt(max - min + 1);
     }
 
+    private Character mapCrossScriptChar(char symbol) {
+        char lower = Character.toLowerCase(symbol);
+
+        Character latinToCyr = config.latinToCyrMap().get(lower);
+        if (latinToCyr != null) {
+            return Character.isUpperCase(symbol) ? Character.toUpperCase(latinToCyr) : latinToCyr;
+        }
+
+        Character cyrToLatin = config.cyrToLatinMap().get(lower);
+        if (cyrToLatin != null) {
+            return Character.isUpperCase(symbol) ? Character.toUpperCase(cyrToLatin) : cyrToLatin;
+        }
+
+        return null;
+    }
+
+    private String normalizeMixedScripts(String token) {
+        Script dominantScript = resolveDominantScript(token);
+        if (dominantScript == null) {
+            return token;
+        }
+
+        StringBuilder builder = new StringBuilder(token.length());
+        for (int index = 0; index < token.length(); index++) {
+            char symbol = token.charAt(index);
+            Character mapped = dominantScript == Script.LATIN
+                    ? mapToLatin(symbol)
+                    : mapToCyrillic(symbol);
+            builder.append(mapped != null ? mapped : symbol);
+        }
+        return builder.toString();
+    }
+
+    private Script resolveDominantScript(String token) {
+        int latinCount = 0;
+        int cyrillicCount = 0;
+        Script firstLetterScript = null;
+
+        for (int index = 0; index < token.length(); index++) {
+            char symbol = token.charAt(index);
+            if (!Character.isLetter(symbol)) {
+                continue;
+            }
+
+            Character.UnicodeScript script = Character.UnicodeScript.of(symbol);
+            if (script == Character.UnicodeScript.LATIN) {
+                latinCount++;
+                if (firstLetterScript == null) {
+                    firstLetterScript = Script.LATIN;
+                }
+            } else if (script == Character.UnicodeScript.CYRILLIC) {
+                cyrillicCount++;
+                if (firstLetterScript == null) {
+                    firstLetterScript = Script.CYRILLIC;
+                }
+            }
+        }
+
+        if (latinCount == 0 || cyrillicCount == 0) {
+            return null;
+        }
+        if (latinCount == cyrillicCount) {
+            return firstLetterScript;
+        }
+        return latinCount > cyrillicCount ? Script.LATIN : Script.CYRILLIC;
+    }
+
+    private Character mapToLatin(char symbol) {
+        char lower = Character.toLowerCase(symbol);
+        Character mapped = config.cyrToLatinMap().get(lower);
+        if (mapped == null) {
+            return null;
+        }
+        return Character.isUpperCase(symbol) ? Character.toUpperCase(mapped) : mapped;
+    }
+
+    private Character mapToCyrillic(char symbol) {
+        char lower = Character.toLowerCase(symbol);
+        Character mapped = config.latinToCyrMap().get(lower);
+        if (mapped == null) {
+            return null;
+        }
+        return Character.isUpperCase(symbol) ? Character.toUpperCase(mapped) : mapped;
+    }
+
+    private boolean containsBothScripts(String token) {
+        boolean hasLatin = false;
+        boolean hasCyrillic = false;
+
+        for (int index = 0; index < token.length(); index++) {
+            char symbol = token.charAt(index);
+            if (!Character.isLetter(symbol)) {
+                continue;
+            }
+
+            Character.UnicodeScript script = Character.UnicodeScript.of(symbol);
+            if (script == Character.UnicodeScript.LATIN) {
+                hasLatin = true;
+            } else if (script == Character.UnicodeScript.CYRILLIC) {
+                hasCyrillic = true;
+            }
+
+            if (hasLatin && hasCyrillic) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private boolean isAggressiveSeparator(String separator) {
         return "/".equals(separator) || "|".equals(separator);
     }
@@ -242,6 +358,11 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
             return "X";
         }
         return token.replace('/', '_').replace('|', '_').replace(':', '_');
+    }
+
+    private enum Script {
+        LATIN,
+        CYRILLIC
     }
 
     private String pick(List<String> values, Random random) {
@@ -267,6 +388,8 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
             int memeChancePercent,
             int gameChancePercent,
             int scriptMixChancePercent,
+            int scriptMixMaxReplacements,
+            boolean normalizeMixedTokenScript,
             int leetChancePercent,
             int decorationChancePercent,
             int mathSymbolChancePercent,
@@ -329,6 +452,16 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
             }
 
             int scriptMixChancePercent = ConfigResourceSupport.requiredPercent(properties, "scriptMixChancePercent");
+            int scriptMixMaxReplacements = ConfigResourceSupport.requiredInt(
+                    properties,
+                    "scriptMixMaxReplacements",
+                    0,
+                    10
+            );
+            boolean normalizeMixedTokenScript = ConfigResourceSupport.requiredBoolean(
+                    properties,
+                    "normalizeMixedTokenScript"
+            );
             int leetChancePercent = ConfigResourceSupport.requiredPercent(properties, "leetChancePercent");
             int decorationChancePercent = ConfigResourceSupport.requiredPercent(properties, "decorationChancePercent");
             int mathSymbolChancePercent = ConfigResourceSupport.requiredPercent(properties, "mathSymbolChancePercent");
@@ -364,6 +497,8 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
                     memeChancePercent,
                     gameChancePercent,
                     scriptMixChancePercent,
+                    scriptMixMaxReplacements,
+                    normalizeMixedTokenScript,
                     leetChancePercent,
                     decorationChancePercent,
                     mathSymbolChancePercent,
