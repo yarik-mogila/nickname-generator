@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 class ExtensibleNicknameGeneratorTest {
@@ -120,6 +121,23 @@ class ExtensibleNicknameGeneratorTest {
         assertEquals(3, results.size());
         assertTrue(results.get(0).value().startsWith("Custom"));
         assertEquals("third-party", results.get(0).generatorId());
+    }
+
+    @Test
+    void shouldIncludeUserWordInGeneratedNicknames() {
+        ExtensibleNicknameGenerator generator = new ExtensibleNicknameGenerator();
+
+        List<NicknameResult> results = generator.generate(new GenerationRequest(
+                12,
+                NicknameLocale.EN,
+                NicknameTemplate.ADJ_NOUN,
+                123L,
+                StandardNicknameGenerators.COUNTER_STRIKE_PRO,
+                Map.of(GenerationOptionKeys.USER_WORD, "Sniper")
+        ));
+
+        assertEquals(12, results.size());
+        results.forEach(result -> assertTrue(result.value().toLowerCase().contains("sniper")));
     }
 
     private static final class FixedSuffixGenerator implements NicknameProfileGenerator {

@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import io.github.yarikmogila.nickgen.common.GenerationRequest;
+import io.github.yarikmogila.nickgen.common.GenerationOptionKeys;
 import io.github.yarikmogila.nickgen.common.InvalidGenerationRequestException;
 import io.github.yarikmogila.nickgen.common.NicknameGenerator;
 import io.github.yarikmogila.nickgen.common.StandardNicknameGenerators;
@@ -29,6 +30,7 @@ class NicknameGenerationFacadeTest {
                 NicknameLocale.RU,
                 NicknameTemplate.NOUN_VERB,
                 StandardNicknameGenerators.COUNTER_STRIKE_PRO,
+                "pirate",
                 "123"
         );
 
@@ -36,6 +38,7 @@ class NicknameGenerationFacadeTest {
         assertEquals(NicknameLocale.RU, generator.lastRequest.locale());
         assertEquals(NicknameTemplate.NOUN_VERB, generator.lastRequest.template());
         assertEquals(StandardNicknameGenerators.COUNTER_STRIKE_PRO, generator.lastRequest.generatorId());
+        assertEquals("pirate", generator.lastRequest.options().get(GenerationOptionKeys.USER_WORD));
         assertEquals(123L, generator.lastRequest.seed());
         assertEquals(1, results.size());
     }
@@ -50,6 +53,7 @@ class NicknameGenerationFacadeTest {
                 NicknameLocale.EN,
                 NicknameTemplate.ADJ_NOUN,
                 StandardNicknameGenerators.DICTIONARY,
+                null,
                 "   "
         );
 
@@ -67,6 +71,7 @@ class NicknameGenerationFacadeTest {
                         NicknameLocale.EN,
                         NicknameTemplate.ADJ_NOUN,
                         StandardNicknameGenerators.DICTIONARY,
+                        null,
                         "abc"
                 )
         );

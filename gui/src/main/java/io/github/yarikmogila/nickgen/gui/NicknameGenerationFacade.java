@@ -1,6 +1,7 @@
 package io.github.yarikmogila.nickgen.gui;
 
 import io.github.yarikmogila.nickgen.common.ExtensibleNicknameGenerator;
+import io.github.yarikmogila.nickgen.common.GenerationOptionKeys;
 import io.github.yarikmogila.nickgen.common.GenerationRequest;
 import io.github.yarikmogila.nickgen.common.InvalidGenerationRequestException;
 import io.github.yarikmogila.nickgen.common.NicknameGenerator;
@@ -9,6 +10,7 @@ import io.github.yarikmogila.nickgen.common.NicknameLocale;
 import io.github.yarikmogila.nickgen.common.NicknameResult;
 import io.github.yarikmogila.nickgen.common.NicknameTemplate;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 final class NicknameGenerationFacade {
@@ -32,10 +34,25 @@ final class NicknameGenerationFacade {
             NicknameLocale locale,
             NicknameTemplate template,
             String generatorId,
+            String userWordText,
             String seedText
     ) {
         Long seed = parseSeed(seedText);
-        return generator.generate(new GenerationRequest(count, locale, template, seed, generatorId));
+        return generator.generate(new GenerationRequest(
+                count,
+                locale,
+                template,
+                seed,
+                generatorId,
+                resolveOptions(userWordText)
+        ));
+    }
+
+    private Map<String, String> resolveOptions(String userWordText) {
+        if (userWordText == null || userWordText.isBlank()) {
+            return Map.of();
+        }
+        return Map.of(GenerationOptionKeys.USER_WORD, userWordText.trim());
     }
 
     private Long parseSeed(String seedText) {

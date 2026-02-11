@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.github.yarikmogila.nickgen.common.GenerationRequest;
+import io.github.yarikmogila.nickgen.common.GenerationOptionKeys;
 import io.github.yarikmogila.nickgen.common.InvalidGenerationRequestException;
 import io.github.yarikmogila.nickgen.common.NicknameGenerator;
 import io.github.yarikmogila.nickgen.common.NicknameLocale;
@@ -32,6 +33,7 @@ class NicknameTuiAppTest {
                 "--locale", "RU",
                 "--template", "NOUN_VERB",
                 "--generator", "cs-pro",
+                "--word", "beast",
                 "--seed", "42"
         );
 
@@ -40,6 +42,7 @@ class NicknameTuiAppTest {
         assertEquals(NicknameLocale.RU, generator.lastRequest.locale());
         assertEquals(NicknameTemplate.NOUN_VERB, generator.lastRequest.template());
         assertEquals(StandardNicknameGenerators.COUNTER_STRIKE_PRO, generator.lastRequest.generatorId());
+        assertEquals("beast", generator.lastRequest.options().get(GenerationOptionKeys.USER_WORD));
         assertEquals(42L, generator.lastRequest.seed());
 
         String outputText = output.toString();

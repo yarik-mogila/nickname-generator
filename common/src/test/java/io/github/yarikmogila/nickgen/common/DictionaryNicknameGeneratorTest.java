@@ -112,4 +112,21 @@ class DictionaryNicknameGeneratorTest {
                 ))
         );
     }
+
+    @Test
+    void shouldIncludeUserWordForDirectDictionaryGeneration() {
+        DictionaryNicknameGenerator generator = new DictionaryNicknameGenerator();
+
+        List<NicknameResult> results = generator.generate(new GenerationRequest(
+                8,
+                NicknameLocale.EN,
+                NicknameTemplate.ADJ_NOUN,
+                12L,
+                StandardNicknameGenerators.DICTIONARY,
+                Map.of(GenerationOptionKeys.USER_WORD, "Dragon")
+        ));
+
+        assertEquals(8, results.size());
+        results.forEach(result -> assertTrue(result.value().toLowerCase().contains("dragon")));
+    }
 }
