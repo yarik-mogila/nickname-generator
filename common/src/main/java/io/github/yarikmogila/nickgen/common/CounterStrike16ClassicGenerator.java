@@ -40,6 +40,11 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
     @Override
     public String generateCandidate(NicknameRequestContext context, Random random) {
         int tokenCount = randomBetween(random, config.tokenMin(), config.tokenMax());
+        String separator = pick(config.separators(), random);
+        if (isAggressiveSeparator(separator)) {
+            tokenCount = Math.min(tokenCount, 2);
+        }
+
         List<String> tokens = new ArrayList<>(tokenCount);
 
         for (int index = 0; index < tokenCount; index++) {
@@ -54,7 +59,15 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
             tokens.add(transformToken(pick(config.coreWords(), random), random));
         }
 
-        String separator = pick(config.separators(), random);
+        if (tokens.size() > 1 && containsHardSeparator(tokens.get(0))) {
+            tokens = List.of(tokens.get(0), normalizeSecondaryToken(tokens.get(1)));
+            separator = "_";
+        }
+
+        if (tokens.size() > 1 && isAggressiveSeparator(separator) && containsHardSeparator(tokens.get(1))) {
+            separator = "_";
+        }
+
         String nickname = String.join(separator, tokens);
 
         nickname = maybeInjectMathSymbol(nickname, separator, random);
@@ -214,6 +227,21 @@ final class CounterStrike16ClassicGenerator implements NicknameProfileGenerator 
 
     private int randomBetween(Random random, int min, int max) {
         return min + random.nextInt(max - min + 1);
+    }
+
+    private boolean isAggressiveSeparator(String separator) {
+        return "/".equals(separator) || "|".equals(separator);
+    }
+
+    private boolean containsHardSeparator(String token) {
+        return token.contains("/") || token.contains("|") || token.contains("::") || token.contains("__");
+    }
+
+    private String normalizeSecondaryToken(String token) {
+        if (token == null || token.isBlank()) {
+            return "X";
+        }
+        return token.replace('/', '_').replace('|', '_').replace(':', '_');
     }
 
     private String pick(List<String> values, Random random) {

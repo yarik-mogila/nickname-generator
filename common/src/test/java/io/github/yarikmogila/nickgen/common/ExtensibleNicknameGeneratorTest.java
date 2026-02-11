@@ -153,6 +153,37 @@ class ExtensibleNicknameGeneratorTest {
         results.forEach(result -> assertTrue(result.value().toLowerCase().contains("sniper")));
     }
 
+    @Test
+    void shouldAvoidPathLikeMultiPartNicknamesInCs16Profile() {
+        ExtensibleNicknameGenerator generator = new ExtensibleNicknameGenerator();
+
+        List<NicknameResult> results = generator.generate(new GenerationRequest(
+                30,
+                NicknameLocale.RU,
+                NicknameTemplate.ADJ_NOUN,
+                42L,
+                StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC,
+                Map.of(GenerationOptionKeys.USER_WORD, "Антон")
+        ));
+
+        results.forEach(result -> {
+            assertTrue(countChar(result.value(), '/') <= 1);
+            assertTrue(countChar(result.value(), '|') <= 1);
+            assertFalse(result.value().contains("///"));
+            assertFalse(result.value().contains("|||"));
+        });
+    }
+
+    private int countChar(String text, char symbol) {
+        int count = 0;
+        for (int index = 0; index < text.length(); index++) {
+            if (text.charAt(index) == symbol) {
+                count++;
+            }
+        }
+        return count;
+    }
+
     private static final class FixedSuffixGenerator implements NicknameProfileGenerator {
         private final String id;
         private final String title;
