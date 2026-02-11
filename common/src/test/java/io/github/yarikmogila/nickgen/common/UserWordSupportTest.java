@@ -80,6 +80,22 @@ class UserWordSupportTest {
         assertTrue(actual.endsWith("_Token"));
         String styled = actual.substring(0, actual.indexOf('_'));
         assertFalse(styled.equals("Антон"));
+        assertTrue(styled.matches("[A-Za-z0-9]+"));
+        assertFalse(styled.matches(".*[\\u0400-\\u04FF].*"));
+    }
+
+    @Test
+    void shouldTransliterateLatinToCyrillicForCyrillicReferenceWhenMatchStyle() {
+        String actual = UserWordSupport.applyUserWord(
+                "Д4К3Р_Token",
+                "Anton",
+                UserWordSupport.UserWordPosition.START,
+                UserWordSupport.UserWordStyle.MATCH,
+                new Random(2)
+        );
+
+        assertTrue(actual.endsWith("_Token"));
+        String styled = actual.substring(0, actual.indexOf('_'));
         assertTrue(styled.matches(".*[\\u0400-\\u04FF].*"));
     }
 

@@ -176,8 +176,161 @@ final class UserWordSupport {
             return userWord;
         }
 
-        String leetAligned = alignLeet(userWord, reference, random);
+        String scriptAligned = alignScript(userWord, reference);
+        String leetAligned = alignLeet(scriptAligned, reference, random);
         return alignCase(leetAligned, reference);
+    }
+
+    private static String alignScript(String word, String reference) {
+        Script targetScript = dominantScript(reference);
+        if (targetScript == null) {
+            return word;
+        }
+
+        return switch (targetScript) {
+            case LATIN -> transliterateToLatin(word);
+            case CYRILLIC -> transliterateToCyrillic(word);
+        };
+    }
+
+    private static Script dominantScript(String value) {
+        int latinCount = 0;
+        int cyrillicCount = 0;
+
+        for (int index = 0; index < value.length(); index++) {
+            char symbol = value.charAt(index);
+            if (!Character.isLetter(symbol)) {
+                continue;
+            }
+
+            Character.UnicodeScript script = Character.UnicodeScript.of(symbol);
+            if (script == Character.UnicodeScript.LATIN) {
+                latinCount++;
+            } else if (script == Character.UnicodeScript.CYRILLIC) {
+                cyrillicCount++;
+            }
+        }
+
+        if (latinCount == 0 && cyrillicCount == 0) {
+            return null;
+        }
+        if (latinCount >= cyrillicCount) {
+            return Script.LATIN;
+        }
+        return Script.CYRILLIC;
+    }
+
+    private static String transliterateToLatin(String value) {
+        StringBuilder builder = new StringBuilder(value.length());
+        for (int index = 0; index < value.length(); index++) {
+            char symbol = value.charAt(index);
+            String mapped = mapCyrillicToLatin(symbol);
+            builder.append(mapped != null ? mapped : symbol);
+        }
+        return builder.toString();
+    }
+
+    private static String transliterateToCyrillic(String value) {
+        StringBuilder builder = new StringBuilder(value.length());
+        for (int index = 0; index < value.length(); index++) {
+            char symbol = value.charAt(index);
+            Character mapped = mapLatinToCyrillic(symbol);
+            builder.append(mapped != null ? mapped : symbol);
+        }
+        return builder.toString();
+    }
+
+    private static String mapCyrillicToLatin(char symbol) {
+        boolean upper = Character.isUpperCase(symbol);
+        char lower = Character.toLowerCase(symbol);
+
+        String mapped = switch (lower) {
+            case 'а' -> "a";
+            case 'б' -> "b";
+            case 'в' -> "v";
+            case 'г' -> "g";
+            case 'д' -> "d";
+            case 'е' -> "e";
+            case 'ё' -> "yo";
+            case 'ж' -> "zh";
+            case 'з' -> "z";
+            case 'и' -> "i";
+            case 'й' -> "y";
+            case 'к' -> "k";
+            case 'л' -> "l";
+            case 'м' -> "m";
+            case 'н' -> "n";
+            case 'о' -> "o";
+            case 'п' -> "p";
+            case 'р' -> "r";
+            case 'с' -> "s";
+            case 'т' -> "t";
+            case 'у' -> "u";
+            case 'ф' -> "f";
+            case 'х' -> "h";
+            case 'ц' -> "c";
+            case 'ч' -> "ch";
+            case 'ш' -> "sh";
+            case 'щ' -> "shh";
+            case 'ъ' -> "";
+            case 'ы' -> "y";
+            case 'ь' -> "";
+            case 'э' -> "e";
+            case 'ю' -> "yu";
+            case 'я' -> "ya";
+            default -> null;
+        };
+
+        if (mapped == null || mapped.isEmpty()) {
+            return mapped;
+        }
+        if (!upper) {
+            return mapped;
+        }
+
+        char first = Character.toUpperCase(mapped.charAt(0));
+        if (mapped.length() == 1) {
+            return String.valueOf(first);
+        }
+        return first + mapped.substring(1);
+    }
+
+    private static Character mapLatinToCyrillic(char symbol) {
+        char lower = Character.toLowerCase(symbol);
+        Character mapped = switch (lower) {
+            case 'a' -> 'а';
+            case 'b' -> 'б';
+            case 'c' -> 'с';
+            case 'd' -> 'д';
+            case 'e' -> 'е';
+            case 'f' -> 'ф';
+            case 'g' -> 'г';
+            case 'h' -> 'х';
+            case 'i' -> 'и';
+            case 'j' -> 'й';
+            case 'k' -> 'к';
+            case 'l' -> 'л';
+            case 'm' -> 'м';
+            case 'n' -> 'н';
+            case 'o' -> 'о';
+            case 'p' -> 'п';
+            case 'q' -> 'к';
+            case 'r' -> 'р';
+            case 's' -> 'с';
+            case 't' -> 'т';
+            case 'u' -> 'у';
+            case 'v' -> 'в';
+            case 'w' -> 'в';
+            case 'x' -> 'х';
+            case 'y' -> 'й';
+            case 'z' -> 'з';
+            default -> null;
+        };
+
+        if (mapped == null) {
+            return null;
+        }
+        return Character.isUpperCase(symbol) ? Character.toUpperCase(mapped) : mapped;
     }
 
     private static String alignLeet(String word, String reference, Random random) {
@@ -362,5 +515,10 @@ final class UserWordSupport {
             }
         }
         return null;
+    }
+
+    private enum Script {
+        LATIN,
+        CYRILLIC
     }
 }
