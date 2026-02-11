@@ -8,10 +8,16 @@ import java.awt.BorderLayout;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.datatransfer.StringSelection;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Collections;
 import java.util.List;
 import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -19,6 +25,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.ListSelectionModel;
 import javax.swing.SpinnerNumberModel;
 
 final class NicknamePanel extends JPanel {
@@ -44,6 +51,7 @@ final class NicknamePanel extends JPanel {
         seedTextField = new JTextField(12);
         nicknamesModel = new DefaultListModel<>();
         nicknamesList = new JList<>(nicknamesModel);
+        nicknamesList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
 
         add(buildControlsPanel(), BorderLayout.NORTH);
         add(new JScrollPane(nicknamesList), BorderLayout.CENTER);
@@ -82,8 +90,12 @@ final class NicknamePanel extends JPanel {
         JButton copyButton = new JButton("Copy selected");
         copyButton.addActionListener(event -> onCopyClicked());
 
+        JButton exportButton = new JButton("Export TXT");
+        exportButton.addActionListener(event -> onExportClicked());
+
         panel.add(generateButton);
         panel.add(copyButton);
+        panel.add(exportButton);
         return panel;
     }
 
@@ -111,13 +123,58 @@ final class NicknamePanel extends JPanel {
     }
 
     private void onCopyClicked() {
-        String selected = nicknamesList.getSelectedValue();
-        if (selected == null || selected.isBlank()) {
-            showError("Select a nickname to copy");
+        List<String> selected = nicknamesList.getSelectedValuesList();
+        if (selected.isEmpty()) {
+            showError("Select one or more nicknames to copy");
             return;
         }
 
-        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(selected), null);
+        String text = joinLines(selected);
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents(new StringSelection(text), null);
+    }
+
+    private void onExportClicked() {
+        if (nicknamesModel.isEmpty()) {
+            showError("Generate nicknames before exporting");
+            return;
+        }
+
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle("Export nicknames to TXT");
+        fileChooser.setSelectedFile(new File("nicknames.txt"));
+
+        int result = fileChooser.showSaveDialog(this);
+        if (result != JFileChooser.APPROVE_OPTION) {
+            return;
+        }
+
+        File selectedFile = ensureTxtExtension(fileChooser.getSelectedFile());
+        String output = joinLines(modelValues());
+        try {
+            Files.writeString(selectedFile.toPath(), output, StandardCharsets.UTF_8);
+        } catch (IOException exception) {
+            showError("Failed to export file: " + exception.getMessage());
+        }
+    }
+
+    private List<String> modelValues() {
+        return Collections.list(nicknamesModel.elements());
+    }
+
+    static String joinLines(List<String> values) {
+        return String.join("\n", values);
+    }
+
+    private File ensureTxtExtension(File file) {
+        String name = file.getName();
+        if (name.toLowerCase().endsWith(".txt")) {
+            return file;
+        }
+        File parent = file.getParentFile();
+        if (parent == null) {
+            return new File(name + ".txt");
+        }
+        return new File(parent, name + ".txt");
     }
 
     private void showError(String message) {

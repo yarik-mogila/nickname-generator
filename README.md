@@ -80,7 +80,8 @@ GUI includes:
 - nickname count spinner
 - optional seed
 - generated nickname list
-- copy selected nickname button
+- copy one or multiple selected nicknames button
+- export all generated nicknames to TXT file button
 
 ## Public API for third-party developers (`common`)
 
