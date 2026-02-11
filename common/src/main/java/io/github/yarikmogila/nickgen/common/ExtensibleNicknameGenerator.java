@@ -3,6 +3,7 @@ package io.github.yarikmogila.nickgen.common;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
@@ -62,6 +63,7 @@ public final class ExtensibleNicknameGenerator implements NicknameGenerator {
         NicknameRequestContext context = new NicknameRequestContext(request.locale(), request.template(), request.options());
         String userWord = UserWordSupport.resolveUserWord(request.options());
         UserWordSupport.UserWordPosition userWordPosition = UserWordSupport.resolveUserWordPosition(request.options());
+        UserWordSupport.UserWordStyle userWordStyle = resolveUserWordStyle(request.options(), generatorId);
 
         int maxAttempts = resolveMaxAttempts(request.count());
         int attempts = 0;
@@ -79,7 +81,7 @@ public final class ExtensibleNicknameGenerator implements NicknameGenerator {
             if (candidate == null || candidate.isBlank()) {
                 continue;
             }
-            candidate = UserWordSupport.applyUserWord(candidate, userWord, userWordPosition, random);
+            candidate = UserWordSupport.applyUserWord(candidate, userWord, userWordPosition, userWordStyle, random);
 
             if (generatedNicknames.add(candidate)) {
                 results.add(new NicknameResult(candidate, request.locale(), request.template(), generatorId));
@@ -114,6 +116,15 @@ public final class ExtensibleNicknameGenerator implements NicknameGenerator {
             return GenerationRequest.DEFAULT_GENERATOR_ID;
         }
         return generatorId.trim();
+    }
+
+    private UserWordSupport.UserWordStyle resolveUserWordStyle(Map<String, String> options, String generatorId) {
+        UserWordSupport.UserWordStyle style = UserWordSupport.resolveUserWordStyle(options);
+        if (style == UserWordSupport.UserWordStyle.PLAIN
+                && StandardNicknameGenerators.COUNTER_STRIKE_16_CLASSIC.equals(generatorId)) {
+            return UserWordSupport.UserWordStyle.MATCH;
+        }
+        return style;
     }
 
     private record EngineConfig(int minAttempts, int attemptsPerNickname) {
