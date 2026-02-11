@@ -58,12 +58,19 @@ Counter-Strike style generation:
 ./gradlew :tui:run --args="--count 5 --generator cs-pro --seed 42"
 ```
 
+Generation with a user word:
+
+```bash
+./gradlew :tui:run --args="--count 5 --generator dictionary --word Dragon"
+```
+
 ### TUI parameters
 
 - `-c`, `--count` (default: `1`)
 - `-l`, `--locale` (`EN`, `RU`; default: `EN`)
 - `-t`, `--template` (`ADJ_NOUN`, `NOUN_VERB`, `ADJ_NOUN_NUMBER`; default: `ADJ_NOUN`)
 - `-g`, `--generator` (`dictionary`, `minecraft-youtuber`, `cs-pro`, `dota-pro`; default: `dictionary`)
+- `-w`, `--word` optional user word that is included in each nickname
 - `--seed` optional `long`
 
 ## Run GUI
@@ -78,6 +85,7 @@ GUI includes:
 - template selector
 - generator selector
 - nickname count spinner
+- optional user word input
 - optional seed
 - generated nickname list
 - copy one or multiple selected nicknames button
@@ -91,6 +99,7 @@ GUI includes:
 - `NicknameGeneratorRegistry`: register built-in and custom profile generators.
 - `ExtensibleNicknameGenerator`: engine that resolves profile by `generatorId` and guarantees uniqueness.
 - `GenerationRequest`: request model including `generatorId` and optional `options` map.
+- `GenerationOptionKeys.USER_WORD`: built-in option key for forcing inclusion of a user-provided word.
 
 ### Minimal custom generator example
 
@@ -120,7 +129,8 @@ List<NicknameResult> result = generator.generate(new GenerationRequest(
         NicknameLocale.EN,
         NicknameTemplate.ADJ_NOUN,
         123L,
-        "my-profile"
+        "my-profile",
+        Map.of(GenerationOptionKeys.USER_WORD, "Dragon")
 ));
 ```
 

@@ -36,6 +36,7 @@ final class NicknamePanel extends JPanel {
     private final JComboBox<NicknameTemplate> templateComboBox;
     private final JComboBox<NicknameGeneratorDescriptor> generatorComboBox;
     private final JSpinner countSpinner;
+    private final JTextField userWordTextField;
     private final JTextField seedTextField;
     private final DefaultListModel<String> nicknamesModel;
     private final JList<String> nicknamesList;
@@ -48,6 +49,7 @@ final class NicknamePanel extends JPanel {
         templateComboBox = new JComboBox<>(NicknameTemplate.values());
         generatorComboBox = new JComboBox<>(facade.availableGenerators().toArray(NicknameGeneratorDescriptor[]::new));
         countSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 1000, 1));
+        userWordTextField = new JTextField(12);
         seedTextField = new JTextField(12);
         nicknamesModel = new DefaultListModel<>();
         nicknamesList = new JList<>(nicknamesModel);
@@ -74,6 +76,9 @@ final class NicknamePanel extends JPanel {
 
         panel.add(new JLabel("Count:"));
         panel.add(countSpinner);
+
+        panel.add(new JLabel("Word:"));
+        panel.add(userWordTextField);
 
         panel.add(new JLabel("Seed:"));
         panel.add(seedTextField);
@@ -113,6 +118,7 @@ final class NicknamePanel extends JPanel {
                     locale,
                     template,
                     generatorId,
+                    userWordTextField.getText(),
                     seedTextField.getText()
             );
             nicknamesModel.clear();

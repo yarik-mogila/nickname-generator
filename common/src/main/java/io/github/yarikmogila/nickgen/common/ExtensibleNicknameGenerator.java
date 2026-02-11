@@ -60,6 +60,7 @@ public final class ExtensibleNicknameGenerator implements NicknameGenerator {
                 : ThreadLocalRandom.current();
 
         NicknameRequestContext context = new NicknameRequestContext(request.locale(), request.template(), request.options());
+        String userWord = UserWordSupport.resolveUserWord(request.options());
 
         int maxAttempts = resolveMaxAttempts(request.count());
         int attempts = 0;
@@ -77,6 +78,7 @@ public final class ExtensibleNicknameGenerator implements NicknameGenerator {
             if (candidate == null || candidate.isBlank()) {
                 continue;
             }
+            candidate = UserWordSupport.applyUserWord(candidate, userWord, random);
 
             if (generatedNicknames.add(candidate)) {
                 results.add(new NicknameResult(candidate, request.locale(), request.template(), generatorId));

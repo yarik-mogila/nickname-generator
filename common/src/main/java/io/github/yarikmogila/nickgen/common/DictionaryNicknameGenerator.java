@@ -100,6 +100,7 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator, Nic
         Random random = request.seed() != null
                 ? new Random(request.seed())
                 : ThreadLocalRandom.current();
+        String userWord = UserWordSupport.resolveUserWord(request.options());
 
         int maxAttempts = resolveMaxAttempts(request.count());
         List<NicknameResult> results = new ArrayList<>(request.count());
@@ -114,6 +115,7 @@ public final class DictionaryNicknameGenerator implements NicknameGenerator, Nic
             }
 
             String candidate = buildCandidate(localeWordBank, request.template(), random);
+            candidate = UserWordSupport.applyUserWord(candidate, userWord, random);
             if (generatedNicknames.add(candidate)) {
                 results.add(new NicknameResult(candidate, request.locale(), request.template(), id()));
             }
